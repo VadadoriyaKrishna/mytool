@@ -40,11 +40,11 @@
     <div class='col-sm-3'>
         <label class='field-title'>Gender<sub>*</sub>:</label>
         <div class='form-check'>
-            <input type='radio' id='gender_male' name='gender' value='male' class='form-check-input'>
+            <input type='radio' id='gender_male' name='gender' value='Male' class='form-check-input'>
             <label for='gender_male' class='form-check-label'>male</label>
         </div>
         <div class='form-check'>
-            <input type='radio' id='gender_female' name='gender' value='female' class='form-check-input'>
+            <input type='radio' id='gender_female' name='gender' value='Female' class='form-check-input'>
             <label for='gender_female' class='form-check-label'>female</label>
         </div>
     </div>
@@ -83,7 +83,8 @@
     $('.selectpicker').selectpicker();
 
    function form_reset() {
-            $('#first_name').val('');
+            $('#id').val('0');
+    $('#first_name').val('');
     $('#address').val('');
     $('#last_name').val('');
     $('#age').val('');
@@ -92,6 +93,8 @@
     $('#mobile_number').val('');
     $('#gender').val('');
     $('#status').val('');
+    $('#status').val('0').trigger('change');
+    $('.status_div').hide();
 
     }
     function form_data_load(data)
@@ -139,7 +142,12 @@
         var is_valid = true;
         var countOptionError = 0;
 
-            if ($('#first_name').val() == '') {
+            if ($('#id').val() == '') {
+        is_valid = false;
+        countOptionError++;
+        $('#id').notify('Please enter Id', {position: 'bottom'});
+    }
+    if ($('#first_name').val() == '') {
         is_valid = false;
         countOptionError++;
         $('#first_name').notify('Please enter First name', {position: 'bottom'});
@@ -196,7 +204,7 @@
         var l = Ladda.create($('#submit-btn')[0]);
         l.start();
 
-        SetContentPublishApp();
+        //SetContentPublishApp();
             if (!CheckRequiredValues()) {
                 //event.preventDefault();
                 l.stop();

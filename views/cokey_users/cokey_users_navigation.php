@@ -6,7 +6,7 @@
                 <div class="header-tab-option">  <!--header-tab-option-->
                     <ul class="nav nav-tabs header-tab-menu">
                         <li>
-                            <a href="javascript:void(0);" data-add_btn_text="Add CokeyUsers" class="add_btn_li <?php echo ($subTab == 0 || $subTab == "27.30.1") ? 'active' : ''; ?>" onclick="loadData('<?php echo $routeFilePath; ?>?currentPage=27.30.1', 'ajax-cokey-tab', 0);">
+                            <a href="javascript:void(0);" data-add_btn_text="Add CokeyUsers" class="add_btn_li <?php echo ($subTab == 0 || $subTab == "20.26.1") ? 'active' : ''; ?>" onclick="loadData('<?php echo $routeFilePath; ?>?currentPage=20.26.1', 'ajax-cokey-tab', 0);">
 
                                 <i class="fas fa-list"></i>CokeyUsers List
                             </a>
@@ -20,7 +20,7 @@
                 if ($subTab != 0) {
                     require_once($page[$subTab]);
                 } else {
-                    require_once($page["27.30.1"]);
+                    require_once($page["20.26.1"]);
                 }
                 ?> 
             </div>

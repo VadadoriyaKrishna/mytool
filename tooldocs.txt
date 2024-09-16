@@ -1,0 +1,18 @@
+1. Add the Sidebar HTML.
+2. Define the page in `fluvina_index.php`.
+3. Specify the controller name in `fluvina_index.php`.
+4. Place the controller file in the `controllers/` directory.
+5. Place the model file in the `models/` directory.
+6. Place the generated view file in the `receptionist_new/` directory.
+7. Delete the generated sidebar file after moving the code to `sidebar.php`.
+
+-----How to run this tool-----  
+1. Put tool /var/www/html in this directory - for linux/unix users.
+   Put tool c://xampp/htdocs - for windows users.
+2. Create folder in project root directory.(controllers,models,views.)
+3. Open PHPMyAdmin (http://localhost/phpmyadmin).
+4. Create a database with name mobigram.
+5. Import cokey_users.sql file(given inside the zip package in SQL file folder).
+6. Run the script http://localhost/mobitool.
+
+

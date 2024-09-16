@@ -116,7 +116,7 @@
                 $(document).off("click", ".delete_data").on("click", ".delete_data", function (e) {
                     e.preventDefault();
                     var id = $(this).data("id");
-                    DeleteConfirmation(id, "cokey_users", "delete_cokey_users");
+                    DeleteConfirmation(id, "CokeyUsers", "delete_cokey_users");
                 });
 
                  // This function is use for the after delete load data
@@ -129,7 +129,6 @@
                 // Handle edit action
                 $(document).off("click", ".edit_data").on("click", ".edit_data", function (e) {
                     var id = $(this).data("id");
-                    var id = $(this).attr("data-id");
                     $.ajax({
                         type: "POST",
                         url: "fluvina_index.php?broughtBy=CokeyUsers",

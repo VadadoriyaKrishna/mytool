@@ -78,7 +78,8 @@
     $('.selectpicker').selectpicker();
 
    function form_reset() {
-            $('#name').val('');
+            $('#id').val('0');
+    $('#name').val('');
     $('#description').val('');
     $('#cover_img').val('');
     $('#price').val('');
@@ -87,6 +88,11 @@
     $('#story_days_count').val('');
     $('#book_languages').val('');
     $('#status').val('');
+    $('.image_preview').attr('src', '');
+    $('#old_image').val('');
+    $('.image_preview').hide();
+    $('#status').val('0').trigger('change');
+    $('.status_div').hide();
 
     }
     function form_data_load(data)
@@ -95,7 +101,7 @@
     $('#name').val(data.name);
     $('#description').val(data.description);
     $('#cover_img').val('');
-    $('.image_preview').attr('src', data.cover_img_url).show();
+    $('.image_preview').attr('src', data.cover_img_url);
     $('#old_image').val(data.cover_img);
     $('.image_preview').show();
     $('#price').val(data.price);
@@ -139,7 +145,12 @@
         var is_valid = true;
         var countOptionError = 0;
 
-            if ($('#name').val() == '') {
+            if ($('#id').val() == '') {
+        is_valid = false;
+        countOptionError++;
+        $('#id').notify('Please enter Id', {position: 'bottom'});
+    }
+    if ($('#name').val() == '') {
         is_valid = false;
         countOptionError++;
         $('#name').notify('Please enter Name', {position: 'bottom'});

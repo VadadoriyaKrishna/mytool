@@ -96,35 +96,22 @@ class DynamicTableGenerator {
                 // Dynamically create DataTable column definitions
 
                 
-                // foreach ($columns as $column) {
-                //     if ($column['Field'] === 'cover_img_url') {
-                //         $viewTemplate .= '
-                //         {
-                //             data: null,
-                //             orderable: false,
-                //             searchable: false,
-                //             render: function (data, type, row) {
-                //                 var img_url = data.' . $column['Field'] . ';
-                //                 return \'<a href="\' + img_url + \'" target="_blank"><img src="\' + img_url + \'" style="max-height: 100px; min-height: 100px; max-width: 100px; min-width: 100px;"/></a>\';
-                //             }
-                //         },';
-                //     } else {
-                //         $viewTemplate .= '
-                //         {data: "' . $column['Field'] . '", orderable: true, name: "' . $column['Field'] . '"},';
-                //     }
-                // }
+                
                 foreach ($columns as $column) {
                     $fieldName = htmlspecialchars($column['Field'], ENT_QUOTES, 'UTF-8');
                     
-                    if (in_array($fieldName, ['cover_img', 'profile', 'photo', 'image', 'img'])) {
+                    if (strpos($fieldName, 'img') !== false || 
+                    strpos($fieldName, 'image') !== false || 
+                    strpos($fieldName, 'photo') !== false) {
                         // Handle image columns
                         $viewTemplate .= "                    {\n";
-                        $viewTemplate .= "                        data: '{$fieldName}_url',\n";
+                        
+                        $viewTemplate .= "                        data: null,\n";
                         $viewTemplate .= "                        orderable: false,\n";
                         $viewTemplate .= "                        searchable: false,\n";
                         $viewTemplate .= "                        render: function (data, type, row) {\n";
-                        $viewTemplate .= "                            var imageUrl = data;\n";
-                        $viewTemplate .= "                            return '<a href=\"' + imageUrl + '\" target=\"_blank\"><img src=\"' + imageUrl + '\" style=\"max-height: 100px; min-height: 100px; max-width: 100px; min-width: 100px;\"/></a>';\n";
+                        $viewTemplate .= "                            var {$fieldName}_url = data.{$fieldName}_url;\n";
+                        $viewTemplate .= "                            return '<a href=\"' + {$fieldName}_url + '\" target=\"_blank\"><img src=\"' + {$fieldName}_url + '\" style=\"max-height: 100px; min-height: 100px; max-width: 100px; min-width: 100px;\"/></a>';\n";
                         $viewTemplate .= "                        }\n";
                         $viewTemplate .= "                    },\n";
                     } else {
@@ -174,7 +161,7 @@ class DynamicTableGenerator {
                 $(document).off("click", ".delete_data").on("click", ".delete_data", function (e) {
                     e.preventDefault();
                     var id = $(this).data("id");
-                    DeleteConfirmation(id, "' . strtolower($tableName) . '", "delete_' . strtolower($tableName) . '");
+                    DeleteConfirmation(id, "' . $controllerName . '", "delete_' . strtolower($tableName) . '");
                 });
 
                  // This function is use for the after delete load data
@@ -187,7 +174,6 @@ class DynamicTableGenerator {
                 // Handle edit action
                 $(document).off("click", ".edit_data").on("click", ".edit_data", function (e) {
                     var id = $(this).data("id");
-                    var id = $(this).attr("data-id");
                     $.ajax({
                         type: "POST",
                         url: "fluvina_index.php?broughtBy='.$controllerName.'",

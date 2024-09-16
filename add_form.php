@@ -146,7 +146,7 @@ class FormGenerator
         
 
         foreach ($this->columns as $column) {
-            $commonFields = [ 'id', 'created_on', 'created_by', 'updated_by', 'updated_on', 'is_deleted','ip'];
+            $commonFields = [  'created_on', 'created_by', 'updated_by', 'updated_on', 'is_deleted','ip'];
             $fieldName = htmlspecialchars($column['Field'], ENT_QUOTES, 'UTF-8');
             
 
@@ -183,11 +183,15 @@ class FormGenerator
             $checkRequiredValuesFunction .= "        $('#{$fieldName}').notify('Please enter {$label}', {position: 'bottom'});\n";
             $checkRequiredValuesFunction .= "    }\n";
         }
+        // print_r("<pre>");
+        // print_r("$fieldName");
            
         if ($fieldName == 'id') {
             $formResetFunction .= "    $('#{$fieldName}').val('0');\n";
         } else {
             $formResetFunction .= "    $('#{$fieldName}').val('');\n";
+
+
         }
             // $label = ucfirst(str_replace('_', ' ', $fieldName));
             // $formResetFunction .= "    $('#{$fieldName}').val('');\n";
@@ -209,22 +213,45 @@ class FormGenerator
             $label = ucfirst(str_replace('_', ' ', $fieldName));
         
             // Handle special fields like images
-            if (in_array($fieldName, ['cover_img', 'profile', 'photo', 'image'])) {
+           
+        }
+        
+        }
+        foreach ($this->columns as $column) {
+        $fieldName = htmlspecialchars($column['Field'], ENT_QUOTES, 'UTF-8');
+        $commonFields = [ 'status', 'created_on', 'created_by', 'updated_by', 'updated_on', 'is_deleted', 'ip'];
+        
+        if (in_array($fieldName, $commonFields)) {
+            continue;
+        }
+       
+         if (strpos($fieldName, 'img') !== false || 
+            strpos($fieldName, 'image') !== false || 
+            strpos($fieldName, 'photo') !== false) {
+                $formResetFunction .= "    $('.image_preview').attr('src', '');\n";
+                $formResetFunction .= "    $('#old_image').val('');\n";
+
+                $formResetFunction .= "    $('.image_preview').hide();\n";
+            
                 $formDataLoadFunction .= "    $('#{$fieldName}').val('');\n";
-                $formDataLoadFunction .= "    $('.image_preview').attr('src', data.{$fieldName}_url).show();\n";
+                $formDataLoadFunction .= "    $('.image_preview').attr('src', data.{$fieldName}_url);\n";
                 $formDataLoadFunction .= "    $('#old_image').val(data.{$fieldName});\n";
                 $formDataLoadFunction .= "    $('.image_preview').show();\n";
+ 
             } else {
                 // General fields
                 $formDataLoadFunction .= "    $('#{$fieldName}').val(data.{$fieldName});\n";
                 
                 
                 
-            }
-        }
+            }}
+
+        $formResetFunction .= "    $('#status').val('0').trigger('change');\n";
+        $formResetFunction .= "    $('.status_div').hide();\n";
+
         $formDataLoadFunction .= "    $('#status').val('0').trigger('change');\n";
         $formDataLoadFunction .= "    $('.status_div').show();\n";
-        }
+
 
 
         $imagechagefunction = "";
@@ -335,7 +362,7 @@ class FormGenerator
         var l = Ladda.create($('#submit-btn')[0]);
         l.start();
 
-        SetContentPublishApp();
+        //SetContentPublishApp();
             if (!CheckRequiredValues()) {
                 //event.preventDefault();
                 l.stop();

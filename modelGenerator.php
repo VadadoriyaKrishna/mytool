@@ -1,155 +1,129 @@
 <?php 
 
-class modelGenerator{
+class ModelGenerator {
     private $columns;
     private $tableName;
     private $controllerName;
     private $modelName;
     private $viewDirName;
 
-    public function __construct($columns, $tableName, $viewDirName, $modelName, $controllerName){
+    public function __construct($columns, $tableName, $viewDirName, $modelName, $controllerName) {
         $this->columns = $columns;
         $this->tableName = $tableName;
         $this->viewDirName = $viewDirName;
         $this->controllerName = $controllerName;
         $this->modelName = $modelName;
-
     }
-    
 
-    function generateModel($column,$controllerName, $modelName, $viewDirName, $tableName) 
-    {
-        $columnsArray = $column; // This will be an array of column names like ['name', 'cover_img', 'created_on', ...]
+    public function generateModel() {
         $fieldNames = [];
-foreach ($columnsArray as $column) {
-    if (!in_array($column['Field'], ['created_by','updated_by','updated_on','ip','status', 'is_deleted'])) { // Exclude common fields
-        $fieldNames[] = $column['Field'];
-    }
-}
+        $imageColumns = []; // To hold column names related to images
 
-// Now $fieldNames will contain only the field names you need
-// print_r('<pre>');
-// print_r($fieldNames);
-// print_r("hello");
-$columnsArray = $fieldNames;
-//$columnArrayListTableColumn = '"' . implode('", "', $columnsArray) . '"';
-$columnArrayListTableColumn = implode(", ", $columnsArray);
-
-
-        // Debugging output
-        // print_r($columnsArray);
-    
-        // Use the column array in your model template
-        $columnArrayList = json_encode($columnsArray);
-    
-        // print_r($columnArrayList);
-        
-    $modelTemplate = <<<EOD
-    <?php
-    
-    require_once '/var/www/html/mobigram/Functions.php';
-    
-    class {$modelName} extends Functions {
-    
-        function __construct() {
-            parent::__construct();
-            \$this->load_Model_by_path('CommonSqlFunctionsModel', '/var/www/html/mobigram/models');
-        }
-    
-        public function Save{$controllerName}Data(\$id, \$data) {
-            if (\$id > 0) {
-                \$result = \$this->CommonSqlFunctionsModel->where('id', \$id)->update('{$tableName}', \$data);
-            } else {
-                \$result = \$this->CommonSqlFunctionsModel->insert("{$tableName}", \$data);
-            }
-    
-            return \$result ? true : false;
-        }
-    
-        public function {$controllerName}Count(\$search_keyword = "") {
-            \$and_condition = '';
-    
-            if (\$search_keyword != '') {
-                \$column_array = {$columnArrayList};
-                \$and_condition = " and (" . CommonFunctions::createTableLikeColumnCondition(\$column_array, \$search_keyword) . ") ";
-            }
-    
-            \$query = "SELECT count(id) as totalCount FROM {$tableName} WHERE is_deleted = '0' \$and_condition";
-            \$row = \$this->CommonSqlFunctionsModel->query(\$query)->result_row();
-    
-            return \$row["totalCount"];
-        }
-    
-        public function {$controllerName}List(\$search_keyword = '', \$start = '', \$page_limit = '', \$sortBy = '', \$sortOrder = '') {
-           \$and_condition = '';
-            
-           if (\$search_keyword != '') {
-                \$column_array = {$columnArrayList};
-                \$and_condition = " and (" . CommonFunctions::createTableLikeColumnCondition(\$column_array, \$search_keyword) . ") ";
-            }
-
-        \$sortBy = (\$sortBy == '') ? " id " : \$sortBy;
-        \$sortOrder = (\$sortOrder == '') ? 'DESC' : \$sortOrder;
-
-        \$limit = "";
-        if (\$start != '' && \$page_limit != '') {
-            \$limit = " LIMIT \$start, \$page_limit";
-        }
-
-        \$table_column = "{$columnArrayListTableColumn}";
-
-        \$sql = "SELECT \$table_column FROM {$tableName} WHERE is_deleted = '0' \$and_condition ORDER BY \$sortBy \$sortOrder \$limit";
-        \$list = \$this->CommonSqlFunctionsModel->query(\$sql)->result_array();
-
-    // Process the result for additional data manipulation (e.g., generating URLs)
-    if (!empty(\$list)) {
-    \$column_array = {$columnArrayList};
-         foreach (\$list as \$index => \$value) {
-                foreach (\$column_array as \$columnName) {
-                    // Only generate image-related code if the field name matches img, image, photo, or upload
-                    if (in_array(\$columnName, ['cover_img', 'image', 'photo', 'upload'])) {
-                        \$coverImageField = \$columnName;
-                        if (isset(\$value[\$coverImageField])) {
-                            \$cover_img_url = CommonFunctions::getDigitalOceanFileUrl(DO_UPLOAD_SPACE, \$value[\$coverImageField], "{$controllerName}/" . \$coverImageField . "/");
-                            \$list[\$index]["{\$coverImageField}_url"] = \$cover_img_url;
-                        }
-                    }
+        foreach ($this->columns as $column) {
+            if (!in_array($column['Field'], ['created_by', 'updated_by', 'updated_on', 'ip', 'status', 'is_deleted'])) {
+                $fieldNames[] = $column['Field'];
+                if (preg_match('/img|image|photo|upload/', $column['Field'])) {
+                    $imageColumns[] = $column['Field'];
                 }
             }
-
-        
         }
-        return \$list;
+        print_r('<pre>');
+        print_r($this->columns);
+        print_r('<pre>');
+        $columnArrayList = json_encode($fieldNames);
+        $columnArrayListTableColumn = implode(", ", $fieldNames);
 
-}
-    
-        public function get{$controllerName}DataById(\$id) {
-            \$sql = "SELECT * FROM {$tableName} WHERE is_deleted = '0' and id = '\$id'";
-            \$row = \$this->CommonSqlFunctionsModel->query(\$sql)->result_row();
+        $modelContent = "<?php\n\n";
+        $modelContent .= "require_once '/var/www/html/mobigram/Functions.php';\n\n";
+        $modelContent .= "class {$this->modelName} extends Functions {\n\n";
+        $modelContent .= "    function __construct() {\n";
+        $modelContent .= "        parent::__construct();\n";
+        $modelContent .= "        \$this->load_Model_by_path('CommonSqlFunctionsModel', '/var/www/html/mobigram/models');\n";
+        $modelContent .= "    }\n\n";
 
-            
-             if (!empty(\$row)) {
-             \$column_array = {$columnArrayList};
-            foreach (\$column_array as \$columnName) {
-                // Only generate image-related code if the field name matches img, image, photo, or upload
-                if (in_array(\$columnName, ['cover_img', 'image', 'photo', 'upload'])) {
-                    \$coverImageField = \$columnName;
-                    if (isset(\$row[\$coverImageField])) {
-                        \$row["{\$coverImageField}_url"] = CommonFunctions::getDigitalOceanFileUrl(DO_UPLOAD_SPACE, \$row[\$coverImageField], "{$controllerName}/" . \$coverImageField . "/");
-                    }
-                }
+        // save function
+        $modelContent .= "    public function save{$this->controllerName}Data(\$id, \$data) {\n";
+        $modelContent .= "        if (\$id > 0) {\n";
+        $modelContent .= "            \$result = \$this->CommonSqlFunctionsModel->where('id', \$id)->update('{$this->tableName}', \$data);\n";
+        $modelContent .= "        } else {\n";
+        $modelContent .= "            \$result = \$this->CommonSqlFunctionsModel->insert('{$this->tableName}', \$data);\n";
+        $modelContent .= "        }\n\n";
+        //$modelContent .= "        return \$result ? true : false;\n";
+        $modelContent .= "      if (\$result) {\n";
+        $modelContent .= "          return true;\n";
+        $modelContent .= "      } else {\n";
+        $modelContent .= "          return false;\n";
+        $modelContent .= "      }\n";
+        $modelContent .= "    }\n\n";
+
+        // count function
+        $modelContent .= "    public function {$this->controllerName}Count(\$search_keyword = '') {\n";
+        $modelContent .= "        \$and_condition = '';\n\n";
+        $modelContent .= "        if (\$search_keyword != '') {\n";
+        $modelContent .= "            \$column_array = {$columnArrayList};\n";
+        $modelContent .= "            \$and_condition = \" and (\" . CommonFunctions::createTableLikeColumnCondition(\$column_array, \$search_keyword) . \") \";\n";
+        $modelContent .= "        }\n\n";
+        $modelContent .= "        \$query = \"SELECT count(id) as totalCount FROM {$this->tableName} WHERE is_deleted = '0' \$and_condition\";\n";
+        $modelContent .= "        \$row = \$this->CommonSqlFunctionsModel->query(\$query)->result_row();\n\n";
+        $modelContent .= "        return \$row['totalCount'];\n";
+        $modelContent .= "    }\n\n";
+
+        // list function
+        $modelContent .= "    public function {$this->controllerName}List(\$search_keyword = '', \$start = '', \$page_limit = '', \$sortBy = '', \$sortOrder = '') {\n";
+        $modelContent .= "        \$and_condition = '';\n\n";
+        $modelContent .= "        if (\$search_keyword != '') {\n";
+        $modelContent .= "            \$column_array = {$columnArrayList};\n";
+        $modelContent .= "            \$and_condition = \" and (\" . CommonFunctions::createTableLikeColumnCondition(\$column_array, \$search_keyword) . \") \";\n";
+        $modelContent .= "        }\n\n";
+        $modelContent .= "        \$sortBy = (\$sortBy == '') ? 'id' : \$sortBy;\n";
+        $modelContent .= "        \$sortOrder = (\$sortOrder == '') ? 'DESC' : \$sortOrder;\n\n";
+        $modelContent .= "        \$limit = '';\n";
+        $modelContent .= "        if (\$start != '' && \$page_limit != '') {\n";
+        $modelContent .= "            \$limit = \" LIMIT \$start, \$page_limit\";\n";
+        $modelContent .= "        }\n\n";
+        $modelContent .= "        \$table_column = '{$columnArrayListTableColumn}';\n\n";
+        $modelContent .= "        \$sql = \"SELECT \$table_column FROM {$this->tableName} WHERE is_deleted = '0' \$and_condition ORDER BY \$sortBy \$sortOrder \$limit\";\n";
+        $modelContent .= "        \$list = \$this->CommonSqlFunctionsModel->query(\$sql)->result_array();\n\n";
+       
+        if (!empty($imageColumns)) {
+            $modelContent .= "        if (!empty(\$list)) {\n";
+            $modelContent .= "            foreach (\$list as \$index => \$value) {\n";
+            foreach ($imageColumns as $imageColumn) {
+                $modelContent .= "                if (isset(\$value['$imageColumn'])) {\n";
+                $modelContent .= "                    \$image_url = CommonFunctions::getDigitalOceanFileUrl(DO_UPLOAD_SPACE, \$value['$imageColumn'], '{$this->controllerName}/{$imageColumn}/');\n";
+                $modelContent .= "                    \$list[\$index]['{$imageColumn}_url'] = \$image_url;\n";
+                $modelContent .= "                }\n";
             }
-            
+            $modelContent .= "            }\n";
+            $modelContent .= "        }\n";
         }
-            return \$row;
+        $modelContent .= "        return \$list;\n";
+        $modelContent .= "    }\n\n";
+
+        // get data by ID function
+        $modelContent .= "    public function get{$this->controllerName}DataById(\$id) {\n";
+        $modelContent .= "        \$sql = \"SELECT * FROM {$this->tableName} WHERE is_deleted = '0' and id = '\$id'\";\n";
+        $modelContent .= "        \$row = \$this->CommonSqlFunctionsModel->query(\$sql)->result_row();\n\n";
+       
+       
+        if (!empty($imageColumns)) {
+            foreach ($imageColumns as $imageColumn) {
+                $modelContent .= "            if (!empty(\$row)) {\n";
+                $modelContent .= "                \$row['{$imageColumn}_url'] = CommonFunctions::getDigitalOceanFileUrl(DO_UPLOAD_SPACE, \$row['$imageColumn'], '{$this->controllerName}/{$imageColumn}/');\n";
+                //$modelContent .= "                \$row['{$imageColumn}_url'] = \$image_url;\n";
+                $modelContent .= "            }\n";
+            }
         }
-    }
-EOD;
 
-    $modelFilePath = __DIR__ . "/models/{$modelName}.php";
-    file_put_contents($modelFilePath, $modelTemplate);
-    echo "Model file '{$modelName}.php' has been created successfully!\n";
+        $modelContent .= "        return \$row;\n";
+        $modelContent .= "    }\n";
+        $modelContent .= "}\n";
+        $modelContent .= "?>";
 
+        // Write the content to a file
+        $modelFilePath = __DIR__ . "/models/{$this->modelName}.php";
+        file_put_contents($modelFilePath, $modelContent);
+        echo "Model file '{$this->modelName}.php' has been created successfully!\n";
     }
 }
 ?>

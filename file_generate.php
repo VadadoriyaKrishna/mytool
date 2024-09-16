@@ -8,8 +8,7 @@ require_once 'add_form.php';
 require_once 'ControllerGenerator.php';
 require_once 'modelGenerator.php';
 require_once 'data_listing.php';
-// require_once 'generate_model.php';
-// require_once 'generate_view.php';
+
 
 
 class FileGenerator

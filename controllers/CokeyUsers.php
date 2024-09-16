@@ -62,7 +62,7 @@ class CokeyUsers extends CokeyUsersModel {
     }
 
     private function addCokey_users() {
-     $required_params = ["first_name", "address", "last_name", "age", "date_of_birth", "password", "mobile_number", "gender"];
+     $required_params = ["first_name", "address", "last_name", "age", "date_of_birth", "password", "mobile_number", "gender", "status"];
 
         if (CommonFunctions::CheckRequiredParams($required_params, 'post')) {
 
@@ -74,6 +74,7 @@ class CokeyUsers extends CokeyUsersModel {
             $password = $_POST['password'];
             $mobile_number = $_POST['mobile_number'];
             $gender = $_POST['gender'];
+            $status = $_POST['status'];
             $id = $_POST['id'];
                 // Collect data for insertion or update
                 $data = [
@@ -85,11 +86,10 @@ class CokeyUsers extends CokeyUsersModel {
                     "password" => $password,
                     "mobile_number" => $mobile_number,
                     "gender" => $gender,
+                    "status" => $status,
+                    "ip" => $ip
                 ];
 
-                $user_id = $_SESSION['userId'];
-                $ip = CommonFunctions::get_ip();
-                $cur_date = CommonFunctions::cur_date();
                 if ($id == "0") {
                     $data["created_by"] = $user_id;
                     $data["created_on"] = $cur_date;
@@ -101,7 +101,7 @@ class CokeyUsers extends CokeyUsersModel {
                 $result = $this->SaveCokeyUsersData($id, $data);
 
                 if ($result) {
-                    CommonFunctions::SuccessMessage(" Data Saved Successfully.");
+                    CommonFunctions::SuccessMessage("CokeyUsers Data Saved Successfully.");
                 } else {
                     CommonFunctions::ProcessingError();
                 }
@@ -144,7 +144,7 @@ class CokeyUsers extends CokeyUsersModel {
             $result = $this->SaveCokeyUsersData($id, $data);
 
             if ($result) {
-                CommonFunctions::SuccessMessage(' deleted successfully.');
+                CommonFunctions::SuccessMessage('CokeyUsers data deleted successfully.');
             } else {
                 CommonFunctions::ProcessingError();
             }

@@ -69,12 +69,12 @@
                     { data: 'name', orderable: true, name: 'name' },
                     { data: 'description', orderable: true, name: 'description' },
                     {
-                        data: 'cover_img_url',
+                        data: null,
                         orderable: false,
                         searchable: false,
                         render: function (data, type, row) {
-                            var imageUrl = data;
-                            return '<a href="' + imageUrl + '" target="_blank"><img src="' + imageUrl + '" style="max-height: 100px; min-height: 100px; max-width: 100px; min-width: 100px;"/></a>';
+                            var cover_img_url = data.cover_img_url;
+                            return '<a href="' + cover_img_url + '" target="_blank"><img src="' + cover_img_url + '" style="max-height: 100px; min-height: 100px; max-width: 100px; min-width: 100px;"/></a>';
                         }
                     },
                     { data: 'price', orderable: true, name: 'price' },
@@ -137,7 +137,6 @@
                 // Handle edit action
                 $(document).off("click", ".edit_data").on("click", ".edit_data", function (e) {
                     var id = $(this).data("id");
-                    var id = $(this).attr("data-id");
                     $.ajax({
                         type: "POST",
                         url: "fluvina_index.php?broughtBy=CokeyBook",

@@ -1,7 +1,7 @@
 <?php 
 
 class controllerGenerator{
-    private $columns;
+    private $columns; 
     private $tableName;
     private $controllerName;
     private $modelName;
@@ -69,7 +69,8 @@ class controllerGenerator{
     $controllerContent .= "        echo json_encode(\$response);\n";
     $controllerContent .= "        exit;\n";
     $controllerContent .= "    }\n\n";
-
+    
+    //add functionality
     $controllerContent .= "    private function add" . ucfirst($tableName) . "() {\n";
     $commonFields = ['id', 'created_on', 'created_by', 'updated_by', 'updated_on', 'is_deleted','ip'];
     
@@ -97,7 +98,11 @@ class controllerGenerator{
     $controllerContent .= "            \$id = \$_POST['id'];\n";
 
     foreach ($this->columns as $column) {
-    if (in_array($column['Field'], ['cover_img', 'profile', 'photo', 'image'])){
+    //if (in_array($column['Field'], ['cover_img', 'profile', 'photo', 'image'])){
+        if (strpos($column['Field'], 'img') !== false || 
+        strpos($column['Field'], 'image') !== false || 
+        strpos($column['Field'], 'photo') !== false) {
+        
     $controllerContent .= "            \$old_image = \$_POST['old_image'];\n";
     }
     }
@@ -105,9 +110,28 @@ class controllerGenerator{
     
     // Handle image fields separately
     foreach ($this->columns as $column) {
-        if (strpos($column['Field'], 'img') !== false) {
+        if (strpos($column['Field'], 'img') !== false ||  
+            strpos($column['Field'], 'image') !== false || 
+            strpos($column['Field'], 'photo') !== false) {
             $controllerContent .= "            // Check if a new image is uploaded\n";
             $controllerContent .= "            if (isset(\$_FILES['{$column['Field']}']) && !empty(\$_FILES['{$column['Field']}']['name']) && !empty(\$_FILES['{$column['Field']}'])) {\n";
+             $controllerContent .= "         if(\$_FILES['{$column['Field']}']['size'] <= 0) {\n";
+                $controllerContent .="         \$msg = \"Please upload valid cover image.\";\n";
+            // $controllerContent .= "                \$extension = strtolower(end(explode('.', \$file_name)));\n";
+            // $controllerContent .= "                \$allowed_types = ['jpg', 'jpeg', 'png', 'webp'];\n";
+            // $controllerContent .= "                if (!in_array(\$extension, \$allowed_types)) {\n";
+            // $controllerContent .= "                    \$msg = \"Please upload a valid image. Only JPG, JPEG, PNG, and WEBP images are allowed.\";\n";
+            // $controllerContent .= "                } else {\n";
+            // $controllerContent .= "                    \$maxSize = 600 * 1024; // 600KB in bytes\n";
+            // $controllerContent .= "                    if (\$_FILES['{$column['Field']}']['size'] > \$maxSize) {\n";
+            // $controllerContent .= "                        \$msg = \"Image file size exceeds the maximum limit of 600KB.\";\n";
+            // $controllerContent .= "                    } else {\n";
+            // $controllerContent .= "                        // Upload the file\n";
+            // $controllerContent .= "                        \$file_name = CommonFunctions::FileUploadOnDigitalOcean(DO_UPLOAD_SPACE, '{$column['Field']}', 'cokey/book_cover_img/', \$allowed_types);\n";
+            // $controllerContent .= "                    }\n";
+            
+           
+            $controllerContent .= "            } else {\n";
             $controllerContent .= "                \$file_name = \$_FILES['{$column['Field']}']['name'];\n";
             $controllerContent .= "                \$extension = strtolower(end(explode('.', \$file_name)));\n";
             $controllerContent .= "                \$allowed_types = ['jpg', 'jpeg', 'png', 'webp'];\n";
@@ -117,37 +141,36 @@ class controllerGenerator{
             $controllerContent .= "                    \$maxSize = 600 * 1024; // 600KB in bytes\n";
             $controllerContent .= "                    if (\$_FILES['{$column['Field']}']['size'] > \$maxSize) {\n";
             $controllerContent .= "                        \$msg = \"Image file size exceeds the maximum limit of 600KB.\";\n";
-            $controllerContent .= "                    } else {\n";
-            $controllerContent .= "                        // Upload the file\n";
-            $controllerContent .= "                        \$file_name = CommonFunctions::FileUploadOnDigitalOcean(DO_UPLOAD_SPACE, '{$column['Field']}', 'cokey/book_cover_img/', \$allowed_types);\n";
-            $controllerContent .= "                    }\n";
+            $controllerContent .= "                    } \n";
+            // $controllerContent .= "                        // Upload the file\n";
+            // $controllerContent .= "                        \$file_name = CommonFunctions::FileUploadOnDigitalOcean(DO_UPLOAD_SPACE, '{$column['Field']}', 'cokey/book_cover_img/', \$allowed_types);\n";
+            // $controllerContent .= "                    }\n";
             $controllerContent .= "                }\n";
-            $controllerContent .= "            } else {\n";
-            $controllerContent .= "                // Use existing image if no new image is uploaded\n";
-            $controllerContent .= "                if (\$id > 0 && !empty(\$_POST['old_image'])) {\n";
-            $controllerContent .= "                    \$file_name = \$old_image;\n";
-            $controllerContent .= "                } else {\n";
-            $controllerContent .= "                    \$msg = \"Cover image field is required.\";\n";
-            $controllerContent .= "                }\n";
-            $controllerContent .= "            }\n";
-            $controllerContent .= "                \$user_id = \$_SESSION['userId'];\n";
-            $controllerContent .= "                \$ip = CommonFunctions::get_ip();\n";
-            $controllerContent .= "                \$error_msg = \"\";\n";
-            $controllerContent .= "                \$file_name = \"\";\n";
+            $controllerContent .= "         }\n";
+            $controllerContent .= "    } else {\n";
+            $controllerContent .= "        if (\$old_image == '') {\n";
+            $controllerContent .= "            \$msg = \"{$column['Field']} field is required.\";\n";
+            $controllerContent .= "        }\n";
+            $controllerContent .= "    }\n"; // End else block
 
             $controllerContent .= "            if (\$msg == \"\") {\n";
+            $controllerContent .= "                \$user_id = \$_SESSION['userId'];\n";
+            $controllerContent .= "                \$ip = CommonFunctions::get_ip();\n";
+            $controllerContent .= "                 \$cur_date = CommonFunctions::cur_date();\n";
+            $controllerContent .= "                \$error_msg = \"\";\n";
+            $controllerContent .= "                \$file_name = \"\";\n";
             $controllerContent .= "                if (\$id == \"0\" || (\$old_image == '' && \$id > 0)) {\n";
-            $controllerContent .= "            if (isset(\$_FILES['{$column['Field']}']) && !empty(\$_FILES['{$column['Field']}']['name'])) {\n";
+            $controllerContent .= "            if (isset(\$_FILES['{$column['Field']}']) && !empty(\$_FILES['{$column['Field']}'])) {\n";
             $controllerContent .= "                        \$allowed_types = ['jpg', 'jpeg', 'png', 'webp'];\n";
-            $controllerContent .= "                        \$directory_path = 'cokey/cover_img/';\n";
+            $controllerContent .= "                        \$directory_path = '{$viewDirName}/{$column['Field']}/';\n";
             $controllerContent .= "                        \$space_name = DO_UPLOAD_SPACE;\n";
-            $controllerContent .= "                        \$file_name = CommonFunctions::FileUploadOnDigitalOcean(\$space_name, '{$column['Field']}', \$directory_path, \$allowed_types);\n";
+            $controllerContent .= "                        \$file_name = CommonFunctions::FileUploadOnDigitalOcean(\$space_name, \$input_type_file_name='{$column['Field']}', \$directory_path, \$allowed_types);\n";
             $controllerContent .= "                    } else {\n";
-            $controllerContent .= "                        \$error_msg = 'image file field is required.';\n";
+            $controllerContent .= "                        \$error_msg = '{$column['Field']} file field is required.';\n";
             $controllerContent .= "                    }\n";
             $controllerContent .= "                } else {\n";
             $controllerContent .= "                    if (\$old_image == '') {\n";
-            $controllerContent .= "                        \$error_msg = 'image file field is required.';\n";
+            $controllerContent .= "                        \$error_msg = '{$column['Field']} file field is required.';\n";
             $controllerContent .= "                    } else {\n";
             $controllerContent .= "                        \$file_name = \$old_image;\n";
             $controllerContent .= "                    }\n";
@@ -180,15 +203,17 @@ foreach ($this->columns as $column) {
         } else {
             // Assign the regular variable for other fields
             $controllerContent .= "                    \"{$column['Field']}\" => \${$column['Field']},\n";
+            
         }
     }
 }
+$controllerContent .= "                    \"ip\" => \$ip\n";
 
 $controllerContent .= "                ];\n\n";
 
-    $controllerContent .= "                \$user_id = \$_SESSION['userId'];\n";
-    $controllerContent .= "                \$ip = CommonFunctions::get_ip();\n";
-    $controllerContent .= "                \$cur_date = CommonFunctions::cur_date();\n";
+    // $controllerContent .= "                \$user_id = \$_SESSION['userId'];\n";
+    // $controllerContent .= "                \$ip = CommonFunctions::get_ip();\n";
+    // $controllerContent .= "                \$cur_date = CommonFunctions::cur_date();\n";
     
     $controllerContent .= "                if (\$id == \"0\") {\n";
     $controllerContent .= "                    \$data[\"created_by\"] = \$user_id;\n";
@@ -200,18 +225,23 @@ $controllerContent .= "                ];\n\n";
     
     $controllerContent .= "                \$result = \$this->Save{$controllerName}Data(\$id, \$data);\n\n";
     $controllerContent .= "                if (\$result) {\n";
-    $controllerContent .= "                    CommonFunctions::SuccessMessage(\"{$this->controllerName} Data Saved Successfully.\");\n";
+    $controllerContent .= "                    CommonFunctions::SuccessMessage(\"{$controllerName} Data Saved Successfully.\");\n";
     $controllerContent .= "                } else {\n";
     $controllerContent .= "                    CommonFunctions::ProcessingError();\n";
     $controllerContent .= "                }\n";
-    // $controllerContent .= "            } else {\n";
-    // $controllerContent .= "                CommonFunctions::FailMessage(\$msg);\n";
-    // $controllerContent .= "            }\n";
+    foreach ($this->columns as $column) {
+    if (strpos($column['Field'], 'img') !== false || 
+            strpos($column['Field'], 'image') !== false || 
+            strpos($column['Field'], 'photo') !== false) {
+                $controllerContent .= "            } else {\n";
+                $controllerContent .= "                CommonFunctions::FailMessage(\$msg);\n";
+                $controllerContent .= "            }\n";
+            }}
     $controllerContent .= "        } else {\n";
     $controllerContent .= "            CommonFunctions::ParamsError();\n";
     $controllerContent .= "        }\n";
     $controllerContent .= "    }\n";
-    $controllerContent .= " }\n";
+    //$controllerContent .= " }\n";
     
 
     $controllerContent .= "    private function get". ucfirst($tableName) ."ById() {\n";
@@ -264,7 +294,7 @@ $controllerContent .= "                ];\n\n";
             \$result = \$this->Save{$controllerName}Data(\$id, \$data);
 
             if (\$result) {
-                CommonFunctions::SuccessMessage('{$this->controllerName} deleted successfully.');
+                CommonFunctions::SuccessMessage('{$controllerName} data deleted successfully.');
             } else {
                 CommonFunctions::ProcessingError();
             }
@@ -288,23 +318,10 @@ PHP;
     echo "Controller file '{$controllerName}.php' has been created successfully!\n";
 }
 
-// public function getControllerName($column,$controllerName, $modelName, $viewDirName, $tableName) {
-
-//     $getcontrollerName = "new $controllerName()";
-
-//     print_r('<pre>');
-//     print_r($getcontrollerName);
-//     $controllerContent .= "}\n";
-//     return $getcontrollerName;
-// }
 
 
 }
 
 
-
-
-
-//echo $controllerGenerator->getControllerName();
 
 ?>

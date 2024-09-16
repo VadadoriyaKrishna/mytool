@@ -78,6 +78,9 @@ class CokeyBook extends CokeyBookModel {
             $old_image = $_POST['old_image'];
             // Check if a new image is uploaded
             if (isset($_FILES['cover_img']) && !empty($_FILES['cover_img']['name']) && !empty($_FILES['cover_img'])) {
+         if($_FILES['cover_img']['size'] <= 0) {
+         $msg = "Please upload valid cover image.";
+            } else {
                 $file_name = $_FILES['cover_img']['name'];
                 $extension = strtolower(end(explode('.', $file_name)));
                 $allowed_types = ['jpg', 'jpeg', 'png', 'webp'];
@@ -87,36 +90,32 @@ class CokeyBook extends CokeyBookModel {
                     $maxSize = 600 * 1024; // 600KB in bytes
                     if ($_FILES['cover_img']['size'] > $maxSize) {
                         $msg = "Image file size exceeds the maximum limit of 600KB.";
-                    } else {
-                        // Upload the file
-                        $file_name = CommonFunctions::FileUploadOnDigitalOcean(DO_UPLOAD_SPACE, 'cover_img', 'cokey/book_cover_img/', $allowed_types);
-                    }
+                    } 
                 }
-            } else {
-                // Use existing image if no new image is uploaded
-                if ($id > 0 && !empty($_POST['old_image'])) {
-                    $file_name = $_POST['old_image'];
-                } else {
-                    $msg = "Cover image field is required.";
-                }
-            }
+         }
+    } else {
+        if ($old_image == '') {
+            $msg = "cover_img field is required.";
+        }
+    }
+            if ($msg == "") {
                 $user_id = $_SESSION['userId'];
                 $ip = CommonFunctions::get_ip();
+                 $cur_date = CommonFunctions::cur_date();
                 $error_msg = "";
                 $file_name = "";
-            if ($msg == "") {
                 if ($id == "0" || ($old_image == '' && $id > 0)) {
-            if (isset($_FILES['cover_img']) && !empty($_FILES['cover_img']['name'])) {
+            if (isset($_FILES['cover_img']) && !empty($_FILES['cover_img'])) {
                         $allowed_types = ['jpg', 'jpeg', 'png', 'webp'];
-                        $directory_path = 'cokey/cover_img/';
+                        $directory_path = 'cokey_book/cover_img/';
                         $space_name = DO_UPLOAD_SPACE;
-                        $file_name = CommonFunctions::FileUploadOnDigitalOcean($space_name, 'cover_img', $directory_path, $allowed_types);
+                        $file_name = CommonFunctions::FileUploadOnDigitalOcean($space_name, $input_type_file_name='cover_img', $directory_path, $allowed_types);
                     } else {
-                        $error_msg = 'image file field is required.';
+                        $error_msg = 'cover_img file field is required.';
                     }
                 } else {
                     if ($old_image == '') {
-                        $error_msg = 'image file field is required.';
+                        $error_msg = 'cover_img file field is required.';
                     } else {
                         $file_name = $old_image;
                     }
@@ -135,11 +134,9 @@ class CokeyBook extends CokeyBookModel {
                     "story_days_count" => $story_days_count,
                     "book_languages" => $book_languages,
                     "status" => $status,
+                    "ip" => $ip
                 ];
 
-                $user_id = $_SESSION['userId'];
-                $ip = CommonFunctions::get_ip();
-                $cur_date = CommonFunctions::cur_date();
                 if ($id == "0") {
                     $data["created_by"] = $user_id;
                     $data["created_on"] = $cur_date;
@@ -151,15 +148,17 @@ class CokeyBook extends CokeyBookModel {
                 $result = $this->SaveCokeyBookData($id, $data);
 
                 if ($result) {
-                    CommonFunctions::SuccessMessage(" Data Saved Successfully.");
+                    CommonFunctions::SuccessMessage("CokeyBook Data Saved Successfully.");
                 } else {
                     CommonFunctions::ProcessingError();
                 }
+            } else {
+                CommonFunctions::FailMessage($msg);
+            }
         } else {
             CommonFunctions::ParamsError();
         }
     }
- }
     private function getCokey_bookById() {
 	$required_params = ["id"];
 	if (CommonFunctions::CheckRequiredParams($required_params, 'post')) {
@@ -195,7 +194,7 @@ class CokeyBook extends CokeyBookModel {
             $result = $this->SaveCokeyBookData($id, $data);
 
             if ($result) {
-                CommonFunctions::SuccessMessage(' deleted successfully.');
+                CommonFunctions::SuccessMessage('CokeyBook data deleted successfully.');
             } else {
                 CommonFunctions::ProcessingError();
             }

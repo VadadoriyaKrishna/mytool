@@ -6,15 +6,18 @@
     <title>Database Connection Interface</title>
     <style>
         body {
+
+
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
-            background-image: url(bg.avif);
+            background-image: url('b2.webp');
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
             background-position: center;
+            font-size: medium;
            
         }
 
@@ -30,11 +33,13 @@
 
         .form-group {
             margin-bottom: 15px;
+            margin-right: 20px;
         }
 
         label {
             display: block;
             margin-bottom: 5px;
+            font-weight: bolder;
         }
 
         input[type="text"], select, button {
@@ -66,7 +71,7 @@
 <body>
 
 <div class="container">
-    <h2>Database Connection Interface</h2>
+
 
     <div class="form-group">
         <label for="hostname">Hostname:</label>
@@ -124,28 +129,45 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
-        $('#connect').on('click', function() {
-            var hostname = $('#hostname').val();
-            var username = $('#username').val();
-            var password = $('#password').val();
+       $('#connect').on('click', function() {
+        var hostname = $('#hostname').val();
+        var username = $('#username').val();
+        var password = $('#password').val();
 
-            $.ajax({
-                url: 'connect.php',
-                type: 'POST',
-                data: {
-                    hostname: hostname,
-                    username: username,
-                    password: password
-                },
-                success: function(response) {
-                    var databases = JSON.parse(response);
+        $.ajax({
+            url: 'connect.php',
+            type: 'POST',
+            data: {
+                hostname: hostname,
+                username: username,
+                password: password
+            },
+            success: function(response) {
+                var result = JSON.parse(response);
+
+                if (result.success) {
+                    alert(result.message);
+
+                    // Populate the databases dropdown
                     $('#databases').empty().append('<option value="">Select a database</option>');
-                    $.each(databases, function(index, db) {
+                    $.each(result.databases, function(index, db) {
                         $('#databases').append('<option value="' + db + '">' + db + '</option>');
                     });
+
+                    // Reset fields if needed
+                    $('#tables').empty().append('<option value="">Select a table</option>');
+                    $('#controllerName').val('');
+                    $('#modelName').val('');
+                    $('#viewDirName').val('');
+                } else {
+                    alert(result.message);
                 }
-            });
+            },
+            error: function() {
+                alert('An error occurred while connecting.');
+            }
         });
+    });
 
         $('#databases').on('change', function() {
             var hostname = $('#hostname').val();
@@ -168,6 +190,7 @@
                     $.each(tables, function(index, table) {
                         $('#tables').append('<option value="' + table + '">' + table + '</option>');
                     });
+                    
                 }
             });
         });
